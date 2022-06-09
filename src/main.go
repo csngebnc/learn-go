@@ -8,6 +8,7 @@ import (
 
 	"github.com/csngebnc/schoolapp/pkg/routes"
 	"github.com/gorilla/mux"
+	"github.com/samber/lo"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -21,12 +22,12 @@ func main() {
 					if err := recover(); err != nil {
 						switch v := err.(type){
 							case validator.ValidationErrors:
-								errors := make(map[string][]string)
+								errors := make(map[string]string)
 
-								for _, fe := range err.(validator.ValidationErrors) {
-										errors[fe.Field()] = append(errors[fe.Field()], fe.ActualTag())
-								}
-								
+								lo.ForEach(err.(validator.ValidationErrors), func(fe validator.FieldError, _ int){
+									errors[fe.Field()] = fe.ActualTag()
+								})
+
 								res, _ := json.Marshal(errors)
 								w.WriteHeader(http.StatusBadRequest)
 								w.Write(res)
