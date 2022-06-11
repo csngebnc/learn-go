@@ -2,14 +2,13 @@ package routes
 
 import (
 	"github.com/csngebnc/schoolapp/pkg/controllers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-var RegisterStudentRoutes = func(router *mux.Router){
-	router.HandleFunc("/student", controllers.CreateStudent).Methods("POST")
-	router.HandleFunc("/student/grade", controllers.AddGrade).Methods("POST")
-	router.HandleFunc("/student", controllers.GetStudents).Methods("GET")
-	router.HandleFunc("/student/{studentId}", controllers.GetStudentById).Methods("GET")
-	router.HandleFunc("/student/{studentId}", controllers.UpdateStudent).Methods("PUT")
-	router.HandleFunc("/student/{studentId}", controllers.DeleteStudent).Methods("DELETE")
+var RegisterStudentRoutes = func(router *gin.Engine){
+	router.POST("/student", controllers.CreateStudent)
+	router.GET("/student", controllers.GetStudents)
+	router.GET("/student/:studentId", controllers.GetStudentById)
+	router.PUT("/student/:studentId", controllers.UpdateStudent)
+	router.DELETE("/student/:studentId", controllers.DeleteStudent)
 }

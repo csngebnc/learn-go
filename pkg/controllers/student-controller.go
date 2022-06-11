@@ -1,31 +1,24 @@
 package controllers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/csngebnc/schoolapp/pkg/models"
-	"github.com/csngebnc/schoolapp/pkg/utils"
-	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/gin-gonic/gin"
 )
 
 var NewStudent models.Student
 
-func GetStudents(w http.ResponseWriter, r *http.Request){
+func GetStudents(c *gin.Context){
 	students := models.GetAllStudents()
 
-	res, _ := json.Marshal(students)
-
-	w.Write(res)
+	c.JSON(http.StatusOK, students)
 }
 
-func GetStudentById(w http.ResponseWriter, r *http.Request){
-	vars := mux.Vars(r)
-	studentId := vars["studentId"]
-
+func GetStudentById(c *gin.Context){
+	studentId := c.Param("studentId")
 	parsedId, err := strconv.ParseInt(studentId, 0, 0)
 	if err != nil {
 		fmt.Println("hiba történt")
@@ -33,57 +26,46 @@ func GetStudentById(w http.ResponseWriter, r *http.Request){
 
 	student, _ := models.GetStudentById(parsedId)
 
-	res, _ := json.Marshal(student)
-	w.Write(res)
+	c.JSON(http.StatusOK, student)
 }
 
-func CreateStudent(w http.ResponseWriter, r *http.Request){
-	student := &models.Student{}
-	utils.ParseBody(r, student)
-
-	v := validator.New()
-	err := v.Struct(student)
+func CreateStudent(c *gin.Context){
+	var student models.Student
+	err := c.Bind(&student)
+	
 	if err != nil {
 		panic(err)
 	}
 
 	insertResult := student.CreateStudent()
-
-	res, _ := json.Marshal(insertResult)
-	w.Write(res)
+	c.JSON(http.StatusOK, insertResult)
 }
 
-func AddGrade(w http.ResponseWriter, r *http.Request){
-	gradeDto := &models.GradeDto{}
-	utils.ParseBody(r, gradeDto)
+func AddGrade(c *gin.Context){
+	var gradeDto models.GradeDto
+	c.Bind(&gradeDto)
 
 	student, _ := models.GetStudentById(gradeDto.StudentID)
 
-	res, _ := json.Marshal(student.AddGrade(gradeDto.Value))
-	w.Write(res)
+	c.JSON(http.StatusOK, student)
 }
 
-func DeleteStudent(w http.ResponseWriter, r *http.Request){
-	vars := mux.Vars(r)
-	studentId := vars["studentId"]
-
+func DeleteStudent(c *gin.Context){
+	studentId := c.Param("studentId")
 	parsedId, err := strconv.ParseInt(studentId, 0, 0)
 	if err != nil {
 		fmt.Println("hiba történt")
 	}
 
 	student := models.DeleteStudent(parsedId)
-	res, _ := json.Marshal(student)
-	w.Write(res)
+	c.JSON(http.StatusOK, student)
 }
 
-func UpdateStudent(w http.ResponseWriter, r *http.Request){
-	updateData := &models.Student{}
-	utils.ParseBody(r, updateData)
+func UpdateStudent(c *gin.Context){
+	var updateData models.Student
+	c.Bind(&updateData)
 
-	vars := mux.Vars(r)
-	studentId := vars["studentId"]
-
+	studentId := c.Param("studentId")
 	parsedId, err := strconv.ParseInt(studentId, 0, 0)
 	if err != nil {
 		fmt.Println("hiba történt")
@@ -98,7 +80,5 @@ func UpdateStudent(w http.ResponseWriter, r *http.Request){
 	}
 
 	db.Save(&student)
-	res, _ := json.Marshal(student)
-
-	w.Write(res)
+	c.JSON(http.StatusOK, student)
 }

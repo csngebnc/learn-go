@@ -2,9 +2,9 @@ package routes
 
 import (
 	"github.com/csngebnc/schoolapp/pkg/controllers"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-var RegisterGradeRoutes = func(router *mux.Router){
-	router.HandleFunc("/grade", controllers.AddGrade).Methods("POST")
+var RegisterGradeRoutes = func(router *gin.Engine){
+	router.POST("/grade", controllers.AddGrade)
 }

@@ -9,8 +9,8 @@ var db *gorm.DB
 
 type Student struct {
 	gorm.Model
-	Name string `json:"name" validate:"required"`
-	Age uint8 `json:"age" validate:"required"`
+	Name string `json:"name" binding:"required"`
+	Age uint8 `json:"age" binding:"required"`
 	Grades []Grade `gorm:"foreignKey:StudentID" json:"grades"`
 }
 

@@ -1,51 +1,64 @@
 package main
 
 import (
-	"encoding/json"
+	//"encoding/json"
+
 	"fmt"
-	"log"
 	"net/http"
 
+	"github.com/csngebnc/schoolapp/pkg/models"
 	"github.com/csngebnc/schoolapp/pkg/routes"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/samber/lo"
-	"gopkg.in/go-playground/validator.v9"
+	//"github.com/gorilla/mux"
+	//	"github.com/samber/lo"
+	//"gopkg.in/go-playground/validator.v9"
 )
 
 func main() {
-	router := mux.NewRouter()
 
-	router.Use(func(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			fmt.Println(r.URL.Path)
-				defer func() {
-					if err := recover(); err != nil {
-						switch v := err.(type){
-							case validator.ValidationErrors:
-								errors := make(map[string]string)
+	students := []models.Student{
+		{
+			Name: "Bob",
+			Age: 9,
+		},
+		{
+			Name: "Alice",
+			Age: 11,
+		},
+		{
+			Name: "Bob",
+			Age: 10,
+		},
+	}
 
-								lo.ForEach(err.(validator.ValidationErrors), func(fe validator.FieldError, _ int){
-									errors[fe.Field()] = fe.ActualTag()
-								})
+	filtered := models.FilterStudentsUniqueByName(students)
+	fmt.Println(filtered)
 
-								res, _ := json.Marshal(errors)
-								w.WriteHeader(http.StatusBadRequest)
-								w.Write(res)
+	router := gin.New()
+	router.Use(gin.Logger(), func(c *gin.Context){
+		defer func() {
+			if err := recover(); err != nil {
+				switch v := err.(type){
+					case validator.ValidationErrors:
+						errors := make(map[string]string)
 
-								return
-							default:
-								fmt.Printf("Unexpected type: %v", v)
-						}
-					}
-				}()
-        next.ServeHTTP(w, r)
-    })
+						lo.ForEach(err.(validator.ValidationErrors), func(fe validator.FieldError, _ int){
+							errors[fe.Field()] = fe.ActualTag()
+						})
+
+						c.JSON(http.StatusBadRequest, errors)
+						return
+					default:
+						fmt.Printf("Unexpected type: %v", v)
+				}
+			}
+		}()
 	})
 
 	routes.RegisterStudentRoutes(router)
 	routes.RegisterGradeRoutes(router)
 
-	http.Handle("/", router)
-	fmt.Println("Listening on: 8000")
-	log.Fatal(http.ListenAndServe("localhost:8000", router))
+	router.Run(":8000")
 }
